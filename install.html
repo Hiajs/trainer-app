@@ -3,48 +3,78 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Get Trainer</title>
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" href="icons/favicon-32.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Trainer">
 <meta name="theme-color" content="#000000">
 <style>
-  :root { --bg: #000; --card: #161618; --text: #f5f5f7; --muted: #9a9aa0; --accent: #30d158; --ink: #03170a; color-scheme: dark; }
+  :root { --bg: #000; --card: #1c1c1e; --text: #f5f5f7; --muted: #9a9aa0; --accent: #30d158; --ink: #03170a; --blue: #0a84ff; color-scheme: dark; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 -apple-system, BlinkMacSystemFont, Inter, sans-serif; }
-  main { max-width: 460px; margin: 0 auto; padding: 48px max(20px, env(safe-area-inset-left)) 40px max(20px, env(safe-area-inset-right)); display: grid; gap: 18px; text-align: center; }
-  img.logo { width: 96px; height: 96px; border-radius: 22px; justify-self: center; box-shadow: 0 10px 30px rgba(48,209,88,.25); }
-  h1 { margin: 0; font-size: 32px; letter-spacing: -0.02em; }
-  p { margin: 0; color: var(--muted); }
-  .card { background: var(--card); border-radius: 20px; padding: 18px; display: grid; gap: 12px; text-align: left; }
-  .card h2 { margin: 0; font-size: 18px; }
-  a.btn { display: block; text-align: center; padding: 15px; border-radius: 14px; background: var(--accent); color: var(--ink); font-weight: 800; text-decoration: none; font-size: 17px; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.45 -apple-system, BlinkMacSystemFont, Inter, sans-serif; }
+  main { max-width: 460px; margin: 0 auto; padding: 40px max(20px, env(safe-area-inset-left)) 120px max(20px, env(safe-area-inset-right)); display: grid; gap: 18px; text-align: center; }
+  img.logo { width: 104px; height: 104px; border-radius: 24px; justify-self: center; box-shadow: 0 12px 34px rgba(48,209,88,.28); }
+  h1 { margin: 0; font-size: 34px; letter-spacing: -0.02em; }
+  .lead { margin: 0; color: var(--muted); }
+  .card { background: var(--card); border-radius: 22px; padding: 20px; display: grid; gap: 14px; text-align: left; }
+  .card h2 { margin: 0; font-size: 20px; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+  .steps li { display: flex; gap: 12px; align-items: center; }
+  .num { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--ink); font-weight: 800; }
+  .chip { display: inline-grid; place-items: center; vertical-align: middle; width: 38px; height: 32px; border-radius: 9px; background: rgba(10,132,255,.18); color: var(--blue); margin: 0 3px; }
+  small { display: block; color: var(--muted); font-size: 14px; }
+  a.btn, button.btn { display: block; width: 100%; text-align: center; padding: 16px; border: 0; border-radius: 15px; background: var(--accent); color: var(--ink); font: 800 18px/1.2 inherit; text-decoration: none; cursor: pointer; }
   a.btn.alt { background: #2c2c2e; color: var(--text); }
-  ol { margin: 0; padding-left: 20px; color: var(--muted); } li { margin: 4px 0; } b { color: var(--text); }
+  .hint { color: var(--muted); font-size: 14px; margin: 0; }
+  .arrow { position: fixed; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom)); transform: translateX(-50%); font-size: 44px; font-weight: 900; color: var(--accent); animation: bob 1s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translate(-50%,0); } 50% { transform: translate(-50%,10px); } }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 <main>
   <img class="logo" src="icons/icon-512.png" alt="Trainer app icon">
   <h1>Get Trainer</h1>
-  <p>Personalized soccer training with a 3D animation of every drill.</p>
-  <section class="card">
-    <h2>iPhone</h2>
-    <a class="btn" href="Trainer.mobileconfig">Download for iPhone</a>
-    <ol>
-      <li>Open this page in <b>Safari</b> and tap the button. Tap <b>Allow</b> (or <b>Download</b>).</li>
-      <li>If it saved to Files instead: open the <b>Files</b> app → <b>Downloads</b> → tap <b>Trainer.mobileconfig</b>.</li>
-      <li>Open <b>Settings</b> → tap <b>Profile Downloaded</b> → <b>Install</b> (enter your passcode).</li>
-      <li>Trainer is now on your Home Screen. Tap it to open.</li>
+  <p class="lead">Free soccer training app with a 3D animation of every drill.</p>
+
+  <section class="card" id="ios">
+    <h2>Add it to your iPhone</h2>
+    <ol class="steps">
+      <li><span class="num">1</span><span>Tap the <b>Share</b> button
+        <span class="chip"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg></span>
+        at the bottom of Safari<small>On newer iPhones, tap <b>•••</b> first, then <b>Share</b></small></span></li>
+      <li><span class="num">2</span><span>Scroll down and tap <b>Add to Home Screen</b>
+        <span class="chip"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg></span></span></li>
+      <li><span class="num">3</span><span>Tap <b>Add</b>. Trainer appears on your Home Screen like any app.</span></li>
     </ol>
-    <p style="font-size:14px">Another way: tap <b>Open Trainer</b> below in Safari, then tap the <b>Share</b> button → <b>Add to Home Screen</b> → <b>Add</b>.</p>
+    <p class="hint" id="not-safari" hidden>Open this page in <b>Safari</b> to add it (copy the link and paste it into Safari).</p>
   </section>
-  <section class="card">
-    <h2>Android</h2>
-    <a class="btn" href="Trainer.apk">Download for Android</a>
-    <ol>
-      <li>Tap the button, then open <b>Trainer.apk</b>.</li>
-      <li>If asked, allow installs from your browser, then tap <b>Install</b>.</li>
-    </ol>
+
+  <section class="card" id="android" hidden>
+    <h2>Install on Android</h2>
+    <button class="btn" id="install-btn" hidden>Install Trainer</button>
+    <a class="btn" href="Trainer.apk" id="apk-btn">Download Trainer for Android</a>
+    <p class="hint">After the download, open <b>Trainer.apk</b> and tap <b>Install</b>. If asked, allow installs from your browser.</p>
   </section>
+
   <a class="btn alt" href="./">Open Trainer</a>
+  <p class="hint" id="other-device" hidden>On a computer? Open this page on your phone: <b>hiajs.github.io/trainer-app</b></p>
 </main>
+<div class="arrow" id="arrow" hidden>↓</div>
+<script>
+  const ua = navigator.userAgent;
+  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const android = /Android/.test(ua);
+  const safari = ios && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|GSA|Instagram|FBAN|FBAV/.test(ua);
+  if (android) { document.getElementById('ios').hidden = true; document.getElementById('android').hidden = false; }
+  if (!ios && !android) { document.getElementById('android').hidden = false; document.getElementById('other-device').hidden = false; }
+  if (ios) { if (safari) document.getElementById('arrow').hidden = false; else document.getElementById('not-safari').hidden = false; }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  let deferred = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); deferred = e;
+    const b = document.getElementById('install-btn'); b.hidden = false; document.getElementById('apk-btn').className = 'btn alt';
+    b.onclick = async () => { deferred.prompt(); await deferred.userChoice; };
+  });
+</script>
 </body>
 </html>
