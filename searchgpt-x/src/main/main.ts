@@ -313,12 +313,17 @@ app.on('web-contents-created', (_e, contents) => {
       );
     }
     const sel = params.selectionText?.trim();
+    const ai = store.getSettings().aiEnabled;
     if (sel) {
       const short = sel.length > 32 ? `${sel.slice(0, 32)}…` : sel;
+      if (ai) {
+        items.push(
+          { label: `Ask AI about “${short}”`, click: () => act({ action: 'ask-ai', text: sel }) },
+          { label: 'Translate Selection', click: () => act({ action: 'translate', text: sel }) }
+        );
+      }
       items.push(
-        { label: `Ask AI about “${short}”`, click: () => act({ action: 'ask-ai', text: sel }) },
-        { label: `Search “${short}” with SearchGPT X`, click: () => act({ action: 'search-ai', text: sel }) },
-        { label: 'Translate Selection', click: () => act({ action: 'translate', text: sel }) },
+        { label: `Search the web for “${short}”`, click: () => act({ action: 'search-ai', text: sel }) },
         { type: 'separator' },
         { role: 'copy' }
       );
@@ -332,10 +337,9 @@ app.on('web-contents-created', (_e, contents) => {
       items.push(
         { label: 'Back', enabled: contents.navigationHistory.canGoBack(), click: () => contents.navigationHistory.goBack() },
         { label: 'Forward', enabled: contents.navigationHistory.canGoForward(), click: () => contents.navigationHistory.goForward() },
-        { label: 'Reload', click: () => contents.reload() },
-        { type: 'separator' },
-        { label: 'Summarize Page with AI', click: () => act({ action: 'summarize' }) }
+        { label: 'Reload', click: () => contents.reload() }
       );
+      if (ai) items.push({ type: 'separator' }, { label: 'Summarize Page with AI', click: () => act({ action: 'summarize' }) });
     }
     items.push({ type: 'separator' }, { label: 'Inspect Element', click: () => contents.inspectElement(params.x, params.y) });
     const host = contents.hostWebContents ? BrowserWindow.fromWebContents(contents.hostWebContents) : null;
@@ -351,6 +355,14 @@ function guard<T extends unknown[], R>(fn: (event: Electron.IpcMainInvokeEvent, 
     if (!url.startsWith('file://')) throw new Error('Blocked IPC from untrusted frame');
     return fn(event, ...args);
   };
+}
+
+/** Wraps AI handlers so nothing reaches AI or search APIs while AI is turned off. */
+function aiOnly<T extends unknown[], R>(fn: (event: Electron.IpcMainInvokeEvent, ...args: T) => R) {
+  return guard((event: Electron.IpcMainInvokeEvent, ...args: T) => {
+    if (!store.getSettings().aiEnabled) throw new Error('AI features are turned off in Settings.');
+    return fn(event, ...args);
+  });
 }
 
 function isPrivateSender(event: Electron.IpcMainInvokeEvent) {
@@ -396,8 +408,10 @@ function registerIpc() {
   ipcMain.handle(
     'settings:set',
     guard((_e, patch: Partial<Settings>) => {
+      const before = store.getSettings().aiEnabled;
       const s = store.updateSettings(patch);
       applyTheme(s);
+      if (s.aiEnabled !== before) buildMenu();
       broadcast('settings:changed', s);
       return s;
     })
@@ -470,22 +484,22 @@ function registerIpc() {
 
   ipcMain.handle(
     'ai:search',
-    guard((e, req: SearchRequest) => runAI(e, req.requestId, (emit, signal) => runSearch(req, store.getSettings(), keys(), emit, signal)))
+    aiOnly((e, req: SearchRequest) => runAI(e, req.requestId, (emit, signal) => runSearch(req, store.getSettings(), keys(), emit, signal)))
   );
   ipcMain.handle(
     'ai:assistant',
-    guard((e, req: AssistantRequest) => runAI(e, req.requestId, (emit, signal) => runAssistant(req, store.getSettings(), keys(), emit, signal)))
+    aiOnly((e, req: AssistantRequest) => runAI(e, req.requestId, (emit, signal) => runAssistant(req, store.getSettings(), keys(), emit, signal)))
   );
   ipcMain.handle('ai:abort', guard((_e, requestId: string) => aiControllers.get(requestId)?.abort()));
-  ipcMain.handle('ai:images', guard((_e, q: string) => searchImages(q, keys().braveKey)));
-  ipcMain.handle('ai:videos', guard((_e, q: string) => searchVideos(q, keys().braveKey)));
+  ipcMain.handle('ai:images', aiOnly((_e, q: string) => searchImages(q, keys().braveKey)));
+  ipcMain.handle('ai:videos', aiOnly((_e, q: string) => searchVideos(q, keys().braveKey)));
 
   ipcMain.handle('assistant:load', guard((e) => (isPrivateSender(e) ? [] : store.getAssistant())));
   ipcMain.handle('assistant:save', guard((e, messages) => (isPrivateSender(e) ? undefined : store.setAssistant(messages))));
 
   ipcMain.handle(
     'page:pdf-text',
-    guard(async (e, url: string): Promise<PageContext> => {
+    aiOnly(async (e, url: string): Promise<PageContext> => {
       const st = windows.get(e.sender.id);
       const ses = electronSession.fromPartition(st?.partition ?? PERSIST_PARTITION);
       const res = await ses.fetch(url);
@@ -497,7 +511,7 @@ function registerIpc() {
   );
   ipcMain.handle(
     'file:open-document',
-    guard(async (e): Promise<PageContext | null> => {
+    aiOnly(async (e): Promise<PageContext | null> => {
       const win = BrowserWindow.fromWebContents(e.sender)!;
       const pick = await dialog.showOpenDialog(win, {
         title: 'Choose a PDF or text file to analyze',
@@ -648,13 +662,17 @@ function buildMenu() {
       label: 'Bookmarks',
       submenu: [c('Bookmark This Page', 'CmdOrCtrl+D', 'bookmark-page'), c('Show Bookmarks', 'Alt+CmdOrCtrl+B', 'show-bookmarks')]
     },
-    {
-      label: 'AI',
-      submenu: [
-        c('Toggle Assistant', 'CmdOrCtrl+E', 'toggle-assistant'),
-        c('Summarize This Page', 'Shift+CmdOrCtrl+S', 'summarize-page')
-      ]
-    },
+    ...(store.getSettings().aiEnabled
+      ? ([
+          {
+            label: 'AI',
+            submenu: [
+              c('Toggle Assistant', 'CmdOrCtrl+E', 'toggle-assistant'),
+              c('Summarize This Page', 'Shift+CmdOrCtrl+S', 'summarize-page')
+            ]
+          }
+        ] as MenuItemConstructorOptions[])
+      : []),
     {
       label: 'Window',
       submenu: [
@@ -673,7 +691,7 @@ function buildMenu() {
     {
       role: 'help',
       submenu: [
-        { label: 'What does SearchGPT X send to AI providers?', click: () => sendCommand('show-settings') }
+        { label: 'Privacy & Settings', click: () => sendCommand('show-settings') }
       ]
     }
   ];

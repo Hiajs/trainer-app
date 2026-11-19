@@ -197,6 +197,12 @@ export function App() {
         else loadInTab(cur.id, url);
         return;
       }
+      const engine = settings.searchEngineForAddressBar === 'ai' ? 'duckduckgo' : settings.searchEngineForAddressBar;
+      if (!settings.aiEnabled) {
+        if (target === 'new' || !cur) newTab(searchUrl(engine, input));
+        else loadInTab(cur.id, searchUrl(engine, input));
+        return;
+      }
       if (settings.searchEngineForAddressBar !== 'ai' && mode === 'quick' && target !== 'new' && cur?.kind === 'web') {
         loadInTab(cur.id, searchUrl(settings.searchEngineForAddressBar, input));
         return;
@@ -207,7 +213,7 @@ export function App() {
         ask(t.id, input, mode, undefined, t);
       }
     },
-    [ask, loadInTab, newTab, settings.searchEngineForAddressBar]
+    [ask, loadInTab, newTab, settings.searchEngineForAddressBar, settings.aiEnabled]
   );
 
   // ------------------------------------------------------------ page context for the assistant
@@ -384,6 +390,7 @@ export function App() {
         bookmarked={bookmarked}
         assistantOpen={assistantOpen}
         trackingProtection={settings.trackingProtection}
+        aiEnabled={settings.aiEnabled}
         onSelect={setActiveId}
         onClose={closeTab}
         onNew={() => newTab()}
@@ -429,6 +436,7 @@ export function App() {
                   onAsk={(q, mode) => {
                     const url = toNavigableUrl(q);
                     if (url) loadInTab(t.id, url);
+                    else if (!settings.aiEnabled) loadInTab(t.id, searchUrl(settings.searchEngineForAddressBar === 'ai' ? 'duckduckgo' : settings.searchEngineForAddressBar, q));
                     else ask(t.id, q, mode);
                   }}
                   onOpen={(url) => newTab(url)}
@@ -500,7 +508,7 @@ export function App() {
         </main>
 
         <AnimatePresence>
-          {assistantOpen && (
+          {assistantOpen && settings.aiEnabled && (
             <AssistantPanel
               isPrivate={info.isPrivate}
               settings={settings}

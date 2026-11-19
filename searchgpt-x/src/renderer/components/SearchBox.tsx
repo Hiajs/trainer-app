@@ -12,6 +12,7 @@ interface Props {
   big?: boolean;
   autoFocus?: boolean;
   disabled?: boolean;
+  showModes?: boolean;
 }
 
 const MODES: { id: SearchMode; label: string; hint: string; Icon: typeof Zap }[] = [
@@ -20,7 +21,7 @@ const MODES: { id: SearchMode; label: string; hint: string; Icon: typeof Zap }[]
   { id: 'compare', label: 'Compare', hint: 'Compare viewpoints across sources', Icon: Scale }
 ];
 
-export const SearchBox = forwardRef<SearchBoxHandle, Props>(function SearchBox({ onSubmit, placeholder, big, autoFocus, disabled }, ref) {
+export const SearchBox = forwardRef<SearchBoxHandle, Props>(function SearchBox({ onSubmit, placeholder, big, autoFocus, disabled, showModes = true }, ref) {
   const [value, setValue] = useState('');
   const [mode, setMode] = useState<SearchMode>('quick');
   const ta = useRef<HTMLTextAreaElement>(null);
@@ -65,7 +66,7 @@ export const SearchBox = forwardRef<SearchBoxHandle, Props>(function SearchBox({
         className={`w-full resize-none bg-transparent outline-none placeholder:text-ink-400 ${big ? 'text-[19px] leading-7' : 'text-[15px] leading-6'}`}
       />
       <div className="mt-2 flex items-center gap-1.5">
-        {MODES.map(({ id, label, hint, Icon }) => (
+        {showModes && MODES.map(({ id, label, hint, Icon }) => (
           <button
             key={id}
             title={hint}

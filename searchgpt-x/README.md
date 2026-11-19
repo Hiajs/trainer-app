@@ -1,20 +1,22 @@
 # SearchGPT X
 
-An AI-powered desktop browser for macOS (Apple Silicon). It is a real browser — Chromium renders every page — with a conversational search engine on the home screen and an AI assistant in a side panel on every tab.
+A private desktop browser for macOS (Apple Silicon). It is a real browser — Chromium renders every page.
+
+**AI is off by default.** Out of the box it is a plain browser: the home screen searches the web with your chosen engine (DuckDuckGo by default), there is no assistant, and nothing is ever sent to an AI service (the main process refuses all AI requests). Optional AI features — conversational search with citations and an assistant panel — can be turned on in Settings → AI features.
 
 ## Install (from the .dmg)
 
-1. Open `SearchGPT-X-1.0.0-arm64.dmg`.
+1. Open `SearchGPT-X-1.1.0-arm64.dmg`.
 2. Drag **SearchGPT X** onto the **Applications** shortcut in the window.
 3. The first time, **right-click (or Control-click) SearchGPT X in Applications → Open → Open**.
    The app is ad-hoc signed but not notarized by Apple (that needs a paid Apple Developer account), so macOS asks once. On macOS 15 and later, if no Open button appears: try to open it, then go to **System Settings → Privacy & Security** and click **Open Anyway**.
-4. Open **Settings (⌘,)** and paste an API key:
+4. That's it — it works as a normal browser. *Only if you turn on AI features* in **Settings (⌘,)**, paste an API key:
    - **AI:** an OpenAI key (platform.openai.com) *or* an Anthropic key (console.anthropic.com).
    - **Search (recommended):** a free Brave Search API key (api-dashboard.search.brave.com). Without it, web search falls back to DuckDuckGo's keyless HTML results, which can be rate-limited; image and video search need the Brave key.
 
 Browsing works without any key. A Mac managed by a school or employer may block apps that aren't from the App Store or an identified developer; that is the device policy and the app can't change it.
 
-`SearchGPT-X-1.0.0-arm64.zip` contains the same app, for when a disk image is inconvenient.
+`SearchGPT-X-1.1.0-arm64.zip` contains the same app, for when a disk image is inconvenient.
 
 ## What it does
 
@@ -91,7 +93,7 @@ Requirements: Node 20+.
 cd searchgpt-x
 npm install
 npm start                 # build and run in development
-npm run test:e2e          # end-to-end test with a mock AI provider (17 checks)
+npm run test:e2e          # end-to-end test with a mock AI provider (21 checks)
 npm run package:mac       # out/SearchGPT-X-<version>-arm64.dmg (+ .zip)
 npm run package:mac-intel # Intel build
 ```

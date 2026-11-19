@@ -13,6 +13,7 @@ import {
   MoreHorizontal,
   Plus,
   RotateCw,
+  Search,
   Settings as SettingsIcon,
   Shield,
   Sparkles,
@@ -34,6 +35,7 @@ interface Props {
   bookmarked: boolean;
   assistantOpen: boolean;
   trackingProtection: boolean;
+  aiEnabled: boolean;
   onSelect: (id: string) => void;
   onClose: (id: string) => void;
   onNew: () => void;
@@ -180,8 +182,10 @@ export const TopBar = forwardRef<TopBarHandle, Props>(function TopBar(p, ref) {
             ) : (
               <Globe size={13} className="shrink-0 text-ink-400" />
             )
-          ) : (
+          ) : p.aiEnabled ? (
             <Sparkles size={14} className="shrink-0 text-ember" />
+          ) : (
+            <Search size={14} className="shrink-0 text-ink-400" />
           )}
           <input
             ref={input}
@@ -199,7 +203,7 @@ export const TopBar = forwardRef<TopBarHandle, Props>(function TopBar(p, ref) {
               }
             }}
             spellCheck={false}
-            placeholder="Search with AI or enter a website"
+            placeholder={p.aiEnabled ? 'Search with AI or enter a website' : 'Search or enter a website'}
             className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-ink-400"
           />
           {isWeb && p.trackingProtection && active.blocked > 0 && (
@@ -215,6 +219,7 @@ export const TopBar = forwardRef<TopBarHandle, Props>(function TopBar(p, ref) {
         </form>
 
         <div className="no-drag flex items-center">
+          {p.aiEnabled && (
           <button
             onClick={p.onToggleAssistant}
             title="AI Assistant (⌘E)"
@@ -224,6 +229,7 @@ export const TopBar = forwardRef<TopBarHandle, Props>(function TopBar(p, ref) {
           >
             <Sparkles size={15} /> Assistant
           </button>
+          )}
           <div className="relative">
             <IconButton label="Menu" onClick={() => setMenu((m) => !m)}>
               <MoreHorizontal size={18} />

@@ -27,6 +27,11 @@ export function SettingsPanel(p: Props) {
       <div className="space-y-8 px-6 py-5 text-[13.5px]">
         {msg && <div className="rounded-xl bg-emerald-500/10 px-3 py-2 text-emerald-700 dark:text-emerald-300">{msg}</div>}
 
+        <Section title="AI features" desc="Off by default. While off, SearchGPT X is a plain browser: no assistant, no AI answers, and nothing is ever sent to an AI service.">
+          <Switch label="Turn on AI features" desc="Adds AI answers on the home screen and the Assistant panel. Needs your own OpenAI or Anthropic API key." on={s.aiEnabled} onChange={(v) => set({ aiEnabled: v })} />
+        </Section>
+
+        {s.aiEnabled && (
         <Section title="AI provider" desc="Answers are written by the provider you choose, using your own API key.">
           <div className="flex gap-2">
             {(
@@ -63,7 +68,10 @@ export function SettingsPanel(p: Props) {
           )}
         </Section>
 
-        <Section title="Search" desc="Where live web results come from.">
+        )}
+
+        <Section title="Search" desc={s.aiEnabled ? 'Where live web results come from.' : 'Where your searches go.'}>
+          {s.aiEnabled && (<>
           <KeyField name="braveKey" label="Brave Search API key" placeholder="BSA…" saved={!!p.secrets?.braveKey} onSaved={(st) => (p.onSecrets(st), flash('Brave key saved.'))} help="api-dashboard.search.brave.com — the free tier works. Needed for image and video search." />
           <Switch
             label="Use Brave Search when a key is saved"
@@ -81,10 +89,11 @@ export function SettingsPanel(p: Props) {
               ))}
             </select>
           </div>
+          </>)}
           <div className="flex items-center justify-between">
-            <span>Address bar searches go to</span>
-            <select value={s.searchEngineForAddressBar} onChange={(e) => set({ searchEngineForAddressBar: e.target.value as Settings['searchEngineForAddressBar'] })} className="rounded-lg border border-ink-200 bg-transparent px-2 py-1 dark:border-ink-700">
-              <option value="ai">SearchGPT X (AI answer)</option>
+            <span>{s.aiEnabled ? 'Address bar searches go to' : 'Search engine'}</span>
+            <select value={!s.aiEnabled && s.searchEngineForAddressBar === 'ai' ? 'duckduckgo' : s.searchEngineForAddressBar} onChange={(e) => set({ searchEngineForAddressBar: e.target.value as Settings['searchEngineForAddressBar'] })} className="rounded-lg border border-ink-200 bg-transparent px-2 py-1 dark:border-ink-700">
+              {s.aiEnabled && <option value="ai">SearchGPT X (AI answer)</option>}
               <option value="duckduckgo">DuckDuckGo</option>
               <option value="google">Google</option>
               <option value="bing">Bing</option>
@@ -111,14 +120,15 @@ export function SettingsPanel(p: Props) {
 
         <Section title="Privacy" desc="SearchGPT X has no accounts, analytics or telemetry. Nothing is sold or shared.">
           <Switch label="Block known trackers" desc="Blocks requests to ~150 common third-party ad and tracking domains, and sends Global Privacy Control." on={s.trackingProtection} onChange={(v) => set({ trackingProtection: v })} />
-          <Switch label="Send the current page to the assistant by default" desc="Off: page text is only sent when you use a page action or turn on “Use page”." on={s.sendPageContextAutomatically} onChange={(v) => set({ sendPageContextAutomatically: v })} />
+          {s.aiEnabled && <Switch label="Send the current page to the assistant by default" desc="Off: page text is only sent when you use a page action or turn on “Use page”." on={s.sendPageContextAutomatically} onChange={(v) => set({ sendPageContextAutomatically: v })} />}
           <div className="rounded-2xl border border-ink-200 bg-ink-50 p-4 text-[12.5px] leading-relaxed text-ink-600 dark:border-ink-700 dark:bg-ink-950 dark:text-ink-300">
             <div className="mb-1.5 flex items-center gap-1.5 font-semibold text-ink-800 dark:text-ink-100">
               <ShieldCheck size={15} className="text-emerald-500" /> What leaves this Mac
             </div>
             <ul className="list-disc space-y-1 pl-5">
-              <li><b>AI searches:</b> your question (and earlier turns in the same thread) go to your search provider (Brave or DuckDuckGo). The question plus text from the result pages go to {s.aiProvider === 'openai' ? 'OpenAI' : 'Anthropic'}.</li>
-              <li><b>Assistant:</b> your messages go to {s.aiProvider === 'openai' ? 'OpenAI' : 'Anthropic'}. Page or file text is included only when you ask about the page, attach a file, or turn on “Use page”.</li>
+              {!s.aiEnabled && <li><b>AI is off:</b> nothing is sent to any AI service, and no API keys are needed.</li>}
+              {s.aiEnabled && <><li><b>AI searches:</b> your question (and earlier turns in the same thread) go to your search provider (Brave or DuckDuckGo). The question plus text from the result pages go to {s.aiProvider === 'openai' ? 'OpenAI' : 'Anthropic'}.</li>
+              <li><b>Assistant:</b> your messages go to {s.aiProvider === 'openai' ? 'OpenAI' : 'Anthropic'}. Page or file text is included only when you ask about the page, attach a file, or turn on “Use page”.</li></>}
               <li><b>Browsing:</b> pages load directly from the websites you visit, like any browser. Site icons in results come from DuckDuckGo’s icon service.</li>
               <li><b>Stored locally:</b> history, bookmarks, downloads list and the assistant conversation are kept in this Mac’s user folder. API keys are encrypted with macOS Keychain-backed storage.</li>
               <li><b>Networks:</b> SearchGPT X uses your Mac’s normal network settings. School or work networks and device management can still filter or monitor traffic; the browser does not change that.</li>
@@ -130,7 +140,7 @@ export function SettingsPanel(p: Props) {
                 ['Clear history', { history: true }],
                 ['Clear cookies & site data', { cookies: true }],
                 ['Clear cache', { cache: true }],
-                ['Clear assistant conversation', { assistant: true }]
+                ...(s.aiEnabled ? ([['Clear assistant conversation', { assistant: true }]] as const) : [])
               ] as const
             ).map(([label, what]) => (
               <button

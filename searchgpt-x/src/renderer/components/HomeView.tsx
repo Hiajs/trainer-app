@@ -35,7 +35,8 @@ export function HomeView(p: Props) {
   const box = useRef<SearchBoxHandle>(null);
   const turns = p.tab.thread;
   const running = turns.some((t) => t.status === 'running');
-  const aiReady = p.secrets ? (p.settings.aiProvider === 'openai' ? p.secrets.openaiKey : p.secrets.anthropicKey) : true;
+  const ai = p.settings.aiEnabled;
+  const aiReady = !ai || !p.secrets ? true :  p.settings.aiProvider === 'openai' ? p.secrets.openaiKey : p.secrets.anthropicKey;
 
   useEffect(() => {
     const el = scroller.current;
@@ -64,12 +65,14 @@ export function HomeView(p: Props) {
               <span className="inline-flex items-center gap-1.5">
                 <Lock size={14} /> Private window — no history, cookies cleared when you close it.
               </span>
-            ) : (
+            ) : ai ? (
               'Ask a question. Get a cited answer from the live web.'
+            ) : (
+              'Search the web privately.'
             )}
           </p>
           <div className="w-full">
-            <SearchBox ref={box} big autoFocus onSubmit={p.onAsk} placeholder="Ask anything, or type a website…" />
+            <SearchBox ref={box} big autoFocus showModes={ai} onSubmit={p.onAsk} placeholder={ai ? 'Ask anything, or type a website…' : 'Search the web or type a website…'} />
           </div>
 
           {!aiReady && (
@@ -82,7 +85,7 @@ export function HomeView(p: Props) {
           )}
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            {SUGGESTIONS.map((s) => (
+            {ai && SUGGESTIONS.map((s) => (
               <button
                 key={s}
                 onClick={() => p.onAsk(s, s.startsWith('Compare') ? 'compare' : 'quick')}

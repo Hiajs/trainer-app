@@ -5,6 +5,8 @@ export type AIProvider = 'openai' | 'anthropic';
 export type SearchMode = 'quick' | 'research' | 'compare';
 
 export interface Settings {
+  /** Master switch. When false the app is a plain browser and never contacts AI services. */
+  aiEnabled: boolean;
   theme: ThemeSetting;
   aiProvider: AIProvider;
   openaiModel: string;
@@ -22,6 +24,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
+  aiEnabled: false,
   theme: 'system',
   aiProvider: 'openai',
   openaiModel: 'gpt-5-mini',
@@ -32,7 +35,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sendPageContextAutomatically: false,
   sourcesPerAnswer: 6,
   extensions: [],
-  searchEngineForAddressBar: 'ai',
+  searchEngineForAddressBar: 'duckduckgo',
   showWelcome: true
 };
 

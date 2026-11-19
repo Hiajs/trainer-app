@@ -30,10 +30,26 @@ const app = await electron.launch({
 const win = await app.firstWindow();
 win.on('console', (m) => m.type() === 'error' && console.log('[renderer error]', m.text()));
 await win.setViewportSize({ width: 1360, height: 860 }).catch(() => {});
-await win.waitForSelector('text=Ask a question');
+await win.waitForSelector('text=Search the web privately');
 const shot = (name) => win.screenshot({ path: path.join(outDir, name) });
 await shot('01-home-light.png');
 check('home renders', true);
+
+// Plain browser by default: no AI anywhere.
+const defaults = await win.evaluate(() => window.sgx.invoke('settings:get'));
+check('AI off by default', defaults.aiEnabled === false);
+check('no Assistant button when AI is off', (await win.locator('button:has-text("Assistant")').count()) === 0);
+const refused = await win.evaluate(() => window.sgx.invoke('ai:search', { requestId: 'x', query: 'q', mode: 'quick', history: [] }).then(() => 'allowed', (e) => e.message));
+check('AI requests refused while off', /turned off/.test(refused), refused);
+await win.fill('textarea', 'tallest mountain');
+await win.keyboard.press('Enter');
+const ddg = await win.waitForFunction(() => [...document.querySelectorAll('webview')].some((w) => (w.getAttribute('src') || '').startsWith('https://duckduckgo.com/?q=tallest')), null, { timeout: 10000 }).then(() => true).catch(() => false);
+check('home search goes to DuckDuckGo when AI is off', ddg);
+await shot('01b-no-ai-search.png');
+await win.click('button[aria-label="New tab"]');
+await win.click('button[aria-label="Close tab"] >> nth=0');
+await win.evaluate(() => window.sgx.invoke('settings:set', { aiEnabled: true }));
+await win.waitForTimeout(300);
 
 // No key yet: an AI search should explain how to add one.
 await win.fill('textarea', 'what is the tallest mountain');
