@@ -1,5 +1,5 @@
 // Trainer offline support: app pages load from the network when online and from cache when offline.
-const CACHE = 'trainer-v1';
+const CACHE = 'trainer-v2';
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './index.html', './manifest.webmanifest', './icons/icon-192.png'])).then(() => self.skipWaiting()));
 });
